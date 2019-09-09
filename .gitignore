@@ -1,0 +1,6 @@
+target
+.idea
+*.iml
+
+wordpairs.out
+wordpairs.txt

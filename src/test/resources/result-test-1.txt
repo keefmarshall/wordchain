@@ -1,0 +1,3 @@
+4 cat,cot,cog,dog
+4 lead,load,goad,gold
+5 ruby,rube,robe,rode,code

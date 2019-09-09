@@ -1,0 +1,8 @@
+4 cat,cot,cog,dog
+4 lead
+6
+flirble,dooberry 5
+flirble,dooberry lead,gold
+5 ruby,rube,robe,rode,code
+5 lead,load,goad,gold
+
