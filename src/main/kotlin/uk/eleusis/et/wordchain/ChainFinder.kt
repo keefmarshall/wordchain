@@ -1,6 +1,6 @@
 package uk.eleusis.et.wordchain
 
-
+@Deprecated("Inefficient, use the direction-switching variant")
 object ChainFinder {
 
     fun findChain(pair: Pair<String, String>): Chain {

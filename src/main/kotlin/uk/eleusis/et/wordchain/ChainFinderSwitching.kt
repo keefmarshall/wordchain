@@ -72,7 +72,7 @@ object ChainFinderSwitching {
             val subChain = findLayers(newCtx, this::findLayersBackwards)
 
             if (subChain != null) {
-                val potentials = subChain.first().flatMap { Dictionary.wordsCloseTo(it) }
+                val potentials = subChain.first().flatMap { cachedWordsCloseTo(it) }
                 val validWords = set1 intersect potentials
                 return listOf(validWords) + subChain
             }
@@ -90,7 +90,7 @@ object ChainFinderSwitching {
             val subChain = findLayers(newCtx, this::findLayersForwards)
 
             if (subChain != null) {
-                val potentials = subChain.last().flatMap { Dictionary.wordsCloseTo(it) }
+                val potentials = subChain.last().flatMap { cachedWordsCloseTo(it) }
                 val validWords = set2 intersect potentials
                 return subChain + listOf(validWords)
             }
@@ -121,7 +121,7 @@ object ChainFinderSwitching {
             seen = seen + layers.last()
             val next = nextLayer(layers.last(), seen)
             if (next.isNotEmpty()) {
-                layers = layers.plus(listOf(next)) // for some reason Kotlin can't correctly infer when I pass just 'next'
+                layers = layers + listOf(next) // for some reason Kotlin can't correctly infer when I pass just 'next'
             } else {
                 done = true
                 println()
