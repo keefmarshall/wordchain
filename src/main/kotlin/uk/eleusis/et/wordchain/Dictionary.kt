@@ -4,6 +4,7 @@ object Dictionary {
     private const val wordFileName = "/50kwords.txt"
 
     val words = loadFile()
+    val wordsByLength = words.groupBy { it.length }
 
     private fun loadFile() = javaClass.getResource(wordFileName)
         .readText()
@@ -12,8 +13,8 @@ object Dictionary {
         .map { it.trim() }
 
     fun wordsCloseTo(inWord: String) =
-        words
-            .filter { it.length == inWord.length }
+        wordsByLength
+            .getOrDefault(inWord.length, emptyList())
             .filter { it isOneAwayFrom inWord }
 }
 
