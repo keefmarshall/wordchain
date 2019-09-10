@@ -1,5 +1,7 @@
 package uk.eleusis.et.wordchain
 
+import java.util.stream.Collectors
+
 object ChainFinderSwitching {
 
     private data class ChainFinderContext(
@@ -103,9 +105,9 @@ object ChainFinderSwitching {
      * Find all possible next words, excluding ones we've already seen
      */
     fun nextLayer(layer: Set<String>, seen: Set<String>): Set<String> {
-        return layer
-            .flatMap { cachedWordsCloseTo(it) }
-            .toSet()
+        return layer.parallelStream()
+            .flatMap { cachedWordsCloseTo(it).parallelStream() }
+            .collect(Collectors.toSet())
             .minus(seen)
     }
 

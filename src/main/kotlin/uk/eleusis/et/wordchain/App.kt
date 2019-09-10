@@ -16,7 +16,7 @@ fun main(args: Array<String>) {
 internal object App {
     internal fun generateChainsFromFile(filename: String) {
         val pairs = PairFile.load(filename)
-        pairs.asSequence()
+        pairs.parallelStream() //asSequence()
             .filter { Dictionary.words.contains(it.first) && Dictionary.words.contains(it.second) }
             .map { ChainFinderSwitching.findShortestChain(it) }
             .forEach {
