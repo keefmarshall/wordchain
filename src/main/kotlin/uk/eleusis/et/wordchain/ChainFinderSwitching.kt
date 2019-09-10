@@ -76,7 +76,7 @@ object ChainFinderSwitching {
             }
         }
 
-        return null;
+        return null
     }
 
 //    private fun findLayersForwards(

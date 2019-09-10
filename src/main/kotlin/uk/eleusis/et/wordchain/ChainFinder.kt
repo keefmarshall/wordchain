@@ -58,7 +58,7 @@ object ChainFinder {
             }
         }
 
-        return null;
+        return null
     }
 
 }

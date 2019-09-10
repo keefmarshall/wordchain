@@ -3,10 +3,10 @@ package uk.eleusis.et.wordchain
 import uk.eleusis.et.wordchain.result.ResultTester
 
 fun main(args: Array<String>) {
-    val firstArg = args.getOrElse(0) { _ -> "wordpairs.txt" }
+    val firstArg = args.getOrElse(0) { "wordpairs.txt" }
 
     if (firstArg == "-test") {
-        val secondArg = args.getOrElse(1) { _ -> "wordpairs.out" }
+        val secondArg = args.getOrElse(1) { "wordpairs.out" }
         time { ResultTester.testResultFile(secondArg) }
     } else {
         time { App.generateChainsFromFile(firstArg) }
