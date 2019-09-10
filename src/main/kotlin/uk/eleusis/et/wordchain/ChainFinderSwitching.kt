@@ -107,8 +107,8 @@ object ChainFinderSwitching {
     fun nextLayer(layer: Set<String>, seen: Set<String>): Set<String> {
         return layer.parallelStream()
             .flatMap { cachedWordsCloseTo(it).parallelStream() }
+            .filter { !seen.contains(it) }
             .collect(Collectors.toSet())
-            .minus(seen)
     }
 
     /**
