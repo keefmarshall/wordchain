@@ -12,7 +12,7 @@ object ChainFinderSwitching {
     fun findShortestChain(pair: Pair<String, String>): Chain {
 
         val ctx = ChainFinderContext(setOf(pair.first), setOf(pair.second), setOf(pair.first), setOf(pair.second))
-        val layerSets = findLayers(ctx)
+        val layerSets = findLayers(ctx, this::findLayersForwards)
         if (layerSets != null) {
             // at least we know there is a chain
 //            println("Found a chain of size ${layerSetsForward.size}")
@@ -50,98 +50,69 @@ object ChainFinderSwitching {
      */
     private fun findLayers(
         ctx: ChainFinderContext,
-        forward: Boolean = true
+        findLayerFunction: (ChainFinderContext) -> List<Set<String>>?
     ): List<Set<String>>? {
 
+        // If there's an overlap, we're done
         val intersect = ctx.set1 intersect ctx.set2
         if (intersect.isNotEmpty()) {
             return listOf(intersect)
         }
 
-        // Find all possible next words
-        val nextLevel = if (forward) nextLayer(ctx.set1, ctx.seenForward) else nextLayer(ctx.set2, ctx.seenBackward)
+        // No overlap yet, try another layer
+        return findLayerFunction(ctx)
+    }
+
+    private fun findLayersForwards(ctx: ChainFinderContext): List<Set<String>>? {
+        val (set1, set2, seenForward, seenBackward) = ctx
+        val nextLevel = nextLayer(set1, seenForward)
 
         if (nextLevel.isNotEmpty()) {
-            val newCtx = if (forward) {
-                ChainFinderContext(nextLevel, ctx.set2, ctx.seenForward.plus(nextLevel), ctx.seenBackward)
-            } else {
-                ChainFinderContext(ctx.set1, nextLevel, ctx.seenForward, ctx.seenBackward.plus(nextLevel))
-            }
+            val newCtx = ChainFinderContext(nextLevel, set2, seenForward.plus(nextLevel), seenBackward)
+            val subChain = findLayers(newCtx, this::findLayersBackwards)
 
-            val subChain = findLayers(newCtx, !forward)
             if (subChain != null) {
-                return if (forward) {
-                    val potentials = subChain.first().flatMap { Dictionary.wordsCloseTo(it) }
-                    val validWords = ctx.set1 intersect potentials
-                    listOf(validWords) + subChain
-                } else {
-                    val potentials = subChain.last().flatMap { Dictionary.wordsCloseTo(it) }
-                    val validWords = ctx.set2 intersect potentials
-                    subChain + listOf(validWords)
-                }
+                val potentials = subChain.first().flatMap { Dictionary.wordsCloseTo(it) }
+                val validWords = set1 intersect potentials
+                return listOf(validWords) + subChain
             }
         }
 
         return null
     }
 
-//    private fun findLayersForwards(
-//        set1: Set<String>,
-//        set2: Set<String>,
-//        seenForward: Set<String>,
-//        seenBackward: Set<String>
-//    ): List<Set<String>>? {
-//
-//        val intersect = set1 intersect set2
-//        if (intersect.isNotEmpty()) {
-//            return listOf(intersect)
-//        }
-//
-//        // Find all possible next words
-//        val nextLevel = nextLayer(set1, seenForward)
-//
-//        if (nextLevel.isNotEmpty()) {
-//            val subChain = findLayersBackwards(nextLevel, set2, seenForward.plus(nextLevel), seenBackward)
-//
-//            if (subChain != null) {
-//                val potentials = subChain.first().flatMap { Dictionary.wordsCloseTo(it) }
-//                val validWords = set1 intersect potentials
-//                return listOf(validWords) + subChain
-//            }
-//        }
-//
-//        return null
-//    }
-//
-//    private fun findLayersBackwards(
-//        set1: Set<String>,
-//        set2: Set<String>,
-//        seenForward: Set<String>,
-//        seenBackward: Set<String>
-//    ): List<Set<String>>? {
-//
-//        val intersect = set1 intersect set2
-//        if (intersect.isNotEmpty()) {
-//            return listOf(intersect)
-//        }
-//
-//        // Find all possible next words
-//        val nextLevel = nextLayer(set2, seenBackward)
-//
-//        if (nextLevel.isNotEmpty()) {
-//            val subChain = findLayersForwards(set1, nextLevel, seenForward, seenBackward.plus(nextLevel))
-//
-//            if (subChain != null) {
-//                val potentials = subChain.last().flatMap { Dictionary.wordsCloseTo(it) }
-//                val validWords = set2 intersect potentials
-//                return subChain + listOf(validWords)
-//            }
-//        }
-//
-//        return null
-//    }
+    private fun findLayersBackwards(ctx: ChainFinderContext): List<Set<String>>? {
+        val (set1, set2, seenForward, seenBackward) = ctx
+        val nextLevel = nextLayer(set2, seenBackward)
 
+        if (nextLevel.isNotEmpty()) {
+            val newCtx = ChainFinderContext(set1, nextLevel, seenForward, seenBackward.plus(nextLevel))
+            val subChain = findLayers(newCtx, this::findLayersForwards)
 
+            if (subChain != null) {
+                val potentials = subChain.last().flatMap { Dictionary.wordsCloseTo(it) }
+                val validWords = set2 intersect potentials
+                return subChain + listOf(validWords)
+            }
+        }
+
+        return null
+    }
+
+    /**
+     * Find all possible next words, excluding ones we've already seen
+     */
+    fun nextLayer(layer: Set<String>, seen: Set<String>): Set<String> {
+        return layer
+            .flatMap { Dictionary.wordsCloseTo(it) }
+            .toSet()
+            .minus(seen)
+    }
+
+    /**
+     * Helper function for generating challenge entries - can find really long chains
+     * (not used in main flow)
+     */
     fun findLongestChainForWord(word: String): Chain {
         var layers: List<Set<String>> = listOf(setOf(word))
         var seen = emptySet<String>()
@@ -159,13 +130,6 @@ object ChainFinderSwitching {
 
         val wordChain = findChainFromLayers(layers.reversed()).reversed()
         return Chain(Pair(wordChain.first(), wordChain.last()), wordChain)
-    }
-
-    fun nextLayer(layer: Set<String>, seen: Set<String>): Set<String> {
-        return layer
-            .flatMap { Dictionary.wordsCloseTo(it) }
-            .toSet()
-            .minus(seen)
     }
 
     private val closeToWordsCache = Cache<String, List<String>>()
