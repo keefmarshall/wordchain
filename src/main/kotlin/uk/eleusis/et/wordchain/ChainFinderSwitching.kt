@@ -2,9 +2,17 @@ package uk.eleusis.et.wordchain
 
 object ChainFinderSwitching {
 
+    private data class ChainFinderContext(
+        val set1: Set<String>,
+        val set2: Set<String>,
+        val seenForward: Set<String>,
+        val seenBackward: Set<String>
+    )
+
     fun findShortestChain(pair: Pair<String, String>): Chain {
 
-        val layerSets = findLayers(setOf(pair.first), setOf(pair.second), setOf(pair.first), setOf(pair.second))
+        val ctx = ChainFinderContext(setOf(pair.first), setOf(pair.second), setOf(pair.first), setOf(pair.second))
+        val layerSets = findLayers(ctx)
         if (layerSets != null) {
             // at least we know there is a chain
 //            println("Found a chain of size ${layerSetsForward.size}")
@@ -41,36 +49,34 @@ object ChainFinderSwitching {
      * (It switches direction each time through - this reduces the total search time significantly.)
      */
     private fun findLayers(
-        set1: Set<String>,
-        set2: Set<String>,
-        seenForward: Set<String>,
-        seenBackward: Set<String>,
+        ctx: ChainFinderContext,
         forward: Boolean = true
     ): List<Set<String>>? {
 
-        val intersect = set1 intersect set2
+        val intersect = ctx.set1 intersect ctx.set2
         if (intersect.isNotEmpty()) {
             return listOf(intersect)
         }
 
         // Find all possible next words
-        val nextLevel = if (forward) nextLayer(set1, seenForward) else nextLayer(set2, seenBackward)
+        val nextLevel = if (forward) nextLayer(ctx.set1, ctx.seenForward) else nextLayer(ctx.set2, ctx.seenBackward)
 
         if (nextLevel.isNotEmpty()) {
-            val subChain = if (forward) {
-                findLayers(nextLevel, set2, seenForward.plus(nextLevel), seenBackward, false)
+            val newCtx = if (forward) {
+                ChainFinderContext(nextLevel, ctx.set2, ctx.seenForward.plus(nextLevel), ctx.seenBackward)
             } else {
-                findLayers(set1, nextLevel, seenForward, seenBackward.plus(nextLevel), true)
+                ChainFinderContext(ctx.set1, nextLevel, ctx.seenForward, ctx.seenBackward.plus(nextLevel))
             }
 
+            val subChain = findLayers(newCtx, !forward)
             if (subChain != null) {
                 return if (forward) {
                     val potentials = subChain.first().flatMap { Dictionary.wordsCloseTo(it) }
-                    val validWords = set1 intersect potentials
+                    val validWords = ctx.set1 intersect potentials
                     listOf(validWords) + subChain
                 } else {
                     val potentials = subChain.last().flatMap { Dictionary.wordsCloseTo(it) }
-                    val validWords = set2 intersect potentials
+                    val validWords = ctx.set2 intersect potentials
                     subChain + listOf(validWords)
                 }
             }
@@ -104,7 +110,7 @@ object ChainFinderSwitching {
 //            }
 //        }
 //
-//        return null;
+//        return null
 //    }
 //
 //    private fun findLayersBackwards(
@@ -132,7 +138,7 @@ object ChainFinderSwitching {
 //            }
 //        }
 //
-//        return null;
+//        return null
 //    }
 
 
