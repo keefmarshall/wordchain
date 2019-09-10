@@ -11,6 +11,10 @@ object ChainFinderSwitching {
         val seenBackward: Set<String>
     )
 
+    // This is key to performance, so I need to be able to swap it out:
+//    private val wordsCloseTo = CachedDictionary::cachedWordsCloseTo
+    private val wordsCloseTo = CloseWordList::wordsCloseTo
+
     fun findShortestChain(pair: Pair<String, String>): Chain {
 
         val ctx = ChainFinderContext(setOf(pair.first), setOf(pair.second), setOf(pair.first), setOf(pair.second))
@@ -74,7 +78,7 @@ object ChainFinderSwitching {
             val subChain = findLayers(newCtx, this::findLayersBackwards)
 
             if (subChain != null) {
-                val potentials = subChain.first().flatMap { cachedWordsCloseTo(it) }
+                val potentials = subChain.first().flatMap { wordsCloseTo(it) }
                 val validWords = set1 intersect potentials
                 return listOf(validWords) + subChain
             }
@@ -92,7 +96,7 @@ object ChainFinderSwitching {
             val subChain = findLayers(newCtx, this::findLayersForwards)
 
             if (subChain != null) {
-                val potentials = subChain.last().flatMap { cachedWordsCloseTo(it) }
+                val potentials = subChain.last().flatMap { wordsCloseTo(it) }
                 val validWords = set2 intersect potentials
                 return subChain + listOf(validWords)
             }
@@ -106,7 +110,7 @@ object ChainFinderSwitching {
      */
     fun nextLayer(layer: Set<String>, seen: Set<String>): Set<String> {
         return layer.parallelStream()
-            .flatMap { cachedWordsCloseTo(it).parallelStream() }
+            .flatMap { wordsCloseTo(it).parallelStream() }
             .filter { !seen.contains(it) }
             .collect(Collectors.toSet())
     }
@@ -134,7 +138,4 @@ object ChainFinderSwitching {
         return Chain(Pair(wordChain.first(), wordChain.last()), wordChain)
     }
 
-    private val closeToWordsCache = Cache<String, List<String>>()
-    private fun cachedWordsCloseTo(word: String): List<String> =
-        closeToWordsCache.withCache(word, Dictionary::wordsCloseTo)
 }

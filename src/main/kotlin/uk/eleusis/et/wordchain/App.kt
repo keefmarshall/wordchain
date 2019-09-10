@@ -10,6 +10,7 @@ fun main(args: Array<String>) {
         time { ResultTester.testResultFile(secondArg) }
     } else {
         time { App.generateChainsFromFile(firstArg) }
+//        App.generateChainsFromFile(firstArg)
     }
 }
 
@@ -17,12 +18,8 @@ internal object App {
     internal fun generateChainsFromFile(filename: String) {
         val pairs = PairFile.load(filename)
         pairs.parallelStream() //asSequence()
-            .filter { Dictionary.words.contains(it.first) && Dictionary.words.contains(it.second) }
             .map { ChainFinderSwitching.findShortestChain(it) }
             .forEach {
-                if (!it.isValid()) {
-                    System.err.println("ERROR: invalid chain below:")
-                }
                 println("${it.words.size} ${it.words.joinToString(",")}")
             }
     }

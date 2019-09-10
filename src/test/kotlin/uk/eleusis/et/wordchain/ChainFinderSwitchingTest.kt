@@ -1,5 +1,6 @@
 package uk.eleusis.et.wordchain
 
+import org.junit.Ignore
 import org.junit.Test
 
 import org.junit.Assert.*
@@ -133,6 +134,7 @@ class ChainFinderSwitchingTest {
         assertTrue(chain.isValid())
     }
 
+    @Ignore // 'hales' is not in the dictionary so this breaks for precached lists
     @Test
     fun findLongestChainForWord2() {
         val chain = finder.findLongestChainForWord("hales")

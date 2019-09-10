@@ -18,3 +18,9 @@ object Dictionary {
             .filter { it isOneAwayFrom inWord }
 }
 
+object CachedDictionary {
+    private val closeToWordsCache = Cache<String, List<String>>()
+
+    fun cachedWordsCloseTo(word: String): List<String> =
+        closeToWordsCache.withCache(word, Dictionary::wordsCloseTo)
+}
