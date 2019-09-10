@@ -104,7 +104,7 @@ object ChainFinderSwitching {
      */
     fun nextLayer(layer: Set<String>, seen: Set<String>): Set<String> {
         return layer
-            .flatMap { Dictionary.wordsCloseTo(it) }
+            .flatMap { cachedWordsCloseTo(it) }
             .toSet()
             .minus(seen)
     }
