@@ -19,16 +19,16 @@ object CloseWordListPreparer {
 }
 
 object CloseWordList {
-    val closeWordList = loadCloseWordList();
+    internal val closeWordList = loadCloseWordList();
 
     @SuppressWarnings("unchecked")
-    private fun loadCloseWordList(): Map<String, List<String>> {
-        return javaClass.getResource("/closeWordMap.obj").openStream().use { fs ->
+    private fun loadCloseWordList()=
+        javaClass.getResource("/closeWordMap.obj").openStream().use { fs ->
             ObjectInputStream(fs).use { os ->
                 os.readObject()
             }
         } as Map<String, List<String>>
-    }
+
     fun wordsCloseTo(word: String) = closeWordList.getOrDefault(word, emptyList())
 }
 

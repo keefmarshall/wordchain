@@ -9,8 +9,9 @@ fun main(args: Array<String>) {
         val secondArg = args.getOrElse(1) { "wordpairs.out" }
         time { ResultTester.testResultFile(secondArg) }
     } else {
-        time { App.generateChainsFromFile(firstArg) }
-//        App.generateChainsFromFile(firstArg)
+//        CloseWordList.closeWordList // initialise before timing
+//        time { App.generateChainsFromFile(firstArg) }
+        App.generateChainsFromFile(firstArg)
     }
 }
 
